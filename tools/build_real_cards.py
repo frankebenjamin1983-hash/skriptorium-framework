@@ -1,7 +1,7 @@
 """
 tools/build_real_cards.py – Heuristischer Importer.
 
-Liest read-only aus DavidMalanVirtuell/knowledge/**_extracted.md und erzeugt
+Liest read-only aus dem Quellordner *_extracted.md und erzeugt
 realistische Topic-Karten, ohne LLM. Heuristik:
 
   H1   = Quell-Lektion (ignoriert für Karten – steht im Pfad)
@@ -22,6 +22,8 @@ Aufruf (vom PyCompendium-Root):
 
 from __future__ import annotations
 
+import argparse
+import os
 import re
 import sys
 from pathlib import Path
@@ -36,29 +38,19 @@ from schemas import Card, write_json
 # Konfiguration
 # ──────────────────────────────────────────────────────────────────────────
 
-KNOWLEDGE_ROOT = Path(r"C:\Users\bfran\Ai Projekte\DavidMalanVirtuell\knowledge")
+# Quellordner kommt aus:
+#   1. --source CLI-Argument (hoechste Prioritaet)
+#   2. Umgebungsvariable PYCOMPENDIUM_SOURCE_DIR
+#   3. ../knowledge_source (Fallback fuer Quick-Demo)
+#
+# Der Quellordner darf, soll und wird nicht im PyCompendium-Repo liegen.
 
-# Pfad-Substring -> (track, default_level, source_short_prefix)
-# Reihenfolge wichtig: spezifischeres zuerst.
-SOURCE_MAP = [
-    ("cs50p\\12_agentic",       ("advanced",       "advanced",     "cs50p_agentic")),
-    ("cs50p\\02_",              ("core",           "beginner",     "cs50p_l0_functions")),
-    ("cs50p\\03_",              ("core",           "beginner",     "cs50p_l1_conditionals")),
-    ("cs50p\\04_",              ("core",           "beginner",     "cs50p_l2_loops")),
-    ("cs50p\\05_",              ("core",           "beginner",     "cs50p_l3_exceptions")),
-    ("cs50p\\06_",              ("core",           "intermediate", "cs50p_l4_libraries")),
-    ("cs50p\\07_",              ("core",           "intermediate", "cs50p_l5_unit_tests")),
-    ("cs50p\\08_",              ("core",           "intermediate", "cs50p_l6_file_io")),
-    ("cs50p\\09_",              ("core",           "intermediate", "cs50p_l7_regex")),
-    ("cs50p\\10_",              ("core",           "intermediate", "cs50p_l8_oop")),
-    ("cs50p\\11_",              ("core",           "advanced",     "cs50p_l9_etcetera")),
-    ("cs50x\\lektion_06_python", ("core",            "beginner",     "cs50x_l6_python")),
-    ("cs50x\\CS50x.md",          ("cs_fundamentals","overview",     "cs50x_overview")),
-    ("cs50x\\",                  ("cs_fundamentals","beginner",     "cs50x")),
-    ("Mathplotlib\\",            ("scientific",     "intermediate", "matplotlib_yt")),
-    ("Numpy\\",                  ("scientific",     "intermediate", "numpy_yt")),
-    ("OOP Masterclass\\",        ("core",           "intermediate", "oop_masterclass")),
-    ("PythonFabianRappert\\",    ("core",           "mixed",        "rappert")),
+# Default-Mapping fuer Pfad-Substring -> (track, default_level, source_short).
+# Kann durch tools/source_map.json ueberschrieben werden (siehe load_source_map).
+# Bewusst minimal: greift, wenn keine projektspezifische Konfiguration da ist.
+DEFAULT_SOURCE_MAP = [
+    ("python_doc",  ("core", "intermediate", "python_doc")),
+    ("",            ("core", "beginner",     "source")),   # Ultimate Fallback
 ]
 
 
@@ -74,6 +66,30 @@ BOLD_AS_H2_RE = re.compile(r"^\*\*(.+?)\*\*\s*$")
 # Parsing
 # ──────────────────────────────────────────────────────────────────────────
 
+def load_source_map() -> list[tuple[str, tuple[str, str, str]]]:
+    """
+    Laedt das Source-Mapping. Sucht in dieser Reihenfolge:
+      1. tools/source_map.json (lokale, projektspezifische Konfiguration)
+      2. DEFAULT_SOURCE_MAP (generischer Fallback)
+
+    JSON-Format:
+      [
+        ["pfad_substring", ["track", "default_level", "source_short"]],
+        ...
+      ]
+    Reihenfolge wichtig: spezifischere Eintraege zuerst.
+    """
+    import json
+    local = Path(__file__).resolve().parent / "source_map.json"
+    if local.exists():
+        raw = json.loads(local.read_text(encoding="utf-8"))
+        return [(item[0], tuple(item[1])) for item in raw]
+    return DEFAULT_SOURCE_MAP
+
+
+SOURCE_MAP = load_source_map()
+
+
 def classify_source(file_path: Path) -> tuple[str, str, str]:
     """Pfad -> (track, default_level, source_short). Fallback: ('unknown', 'beginner', stem)."""
     p = str(file_path)
@@ -88,7 +104,7 @@ def split_by_headings(text: str) -> list[tuple[int, str, str]]:
     Zerlegt Markdown in (level, heading, body)-Blöcke.
 
     Beispiel-Output:
-      [(1, "Cs50P Lecture 0", ""),
+      [(1, "Quell-Lektion", ""),
        (2, "Program Execution", "- Python source files use ..."),
        (2, "Core Language Elements", ""),
        (3, "Functions", "- A function is ..."),
@@ -123,14 +139,14 @@ def role_for_track(track: str) -> str:
     """
     Welche Rolle haben Karten dieses Tracks im Python-Buch?
 
-    cs_fundamentals = cs50x (C, SQL, HTML, Flask, etc.) → supplementary:
-        Inhalte sind nicht primär Python, taugen aber als Querverweise
+    fundamentals = Inhalte aus angrenzenden Themen (C, SQL, HTML, etc.)
+        → supplementary: nicht primär Python, taugen aber als Querverweise
         wo sie Python-Themen erhellen (z. B. C-Algorithmen → algorithmische
         Effizienz in Python).
 
     Alle anderen Tracks (core, scientific, advanced) → primary.
     """
-    if track == "cs_fundamentals":
+    if track == "fundamentals":
         return "supplementary"
     return "primary"
 
@@ -199,18 +215,45 @@ def cards_from_file(file_path: Path) -> list[Card]:
 # Hauptlauf
 # ──────────────────────────────────────────────────────────────────────────
 
+def resolve_source_dir(cli_source: str | None) -> Path:
+    """Aufloest: CLI -> ENV -> Fallback."""
+    if cli_source:
+        return Path(cli_source).expanduser().resolve()
+    env_dir = os.getenv("PYCOMPENDIUM_SOURCE_DIR")
+    if env_dir:
+        return Path(env_dir).expanduser().resolve()
+    fallback = Path(__file__).resolve().parent.parent.parent / "knowledge_source"
+    return fallback
+
+
 def main() -> None:
-    if not KNOWLEDGE_ROOT.exists():
-        print(f"FEHLER: knowledge-Ordner nicht gefunden: {KNOWLEDGE_ROOT}", file=sys.stderr)
+    parser = argparse.ArgumentParser(
+        description="Heuristik-Importer fuer Topic-Karten aus extrahierten MDs.",
+    )
+    parser.add_argument(
+        "--source", metavar="DIR",
+        help="Quellordner mit *_extracted.md-Dateien. "
+             "Default: $PYCOMPENDIUM_SOURCE_DIR oder ../knowledge_source.",
+    )
+    args = parser.parse_args()
+
+    knowledge_root = resolve_source_dir(args.source)
+    if not knowledge_root.exists():
+        print(
+            f"FEHLER: Quellordner nicht gefunden: {knowledge_root}\n"
+            f"  Setze --source DIR oder Umgebungsvariable PYCOMPENDIUM_SOURCE_DIR.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
-    files = sorted(KNOWLEDGE_ROOT.rglob("*_extracted.md"))
+    files = sorted(knowledge_root.rglob("*_extracted.md"))
+    print(f"Quellordner: {knowledge_root}")
     print(f"Gefundene Quell-Dateien: {len(files)}")
 
     all_cards: list[Card] = []
     for f in files:
         cards = cards_from_file(f)
-        print(f"  {f.relative_to(KNOWLEDGE_ROOT)} -> {len(cards)} Karten")
+        print(f"  {f.relative_to(knowledge_root)} -> {len(cards)} Karten")
         all_cards.extend(cards)
 
     # Schreiben + validieren in einem Rutsch.

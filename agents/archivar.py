@@ -2,7 +2,7 @@
 agents/archivar.py – Topic-Karten aus Quell-MDs erzeugen.
 
 Stufe 1: Feste Mock-Karten, kein LLM.
-Stufe 2: Liest die existierenden Chroma-Chunks aus DavidMalanVirtuell,
+Stufe 2: Liest die existierenden Chroma-Chunks aus dem Vectorstore,
          Grok ergänzt nur Metadaten (Topic/Subtopic/Level).
 """
 
@@ -27,7 +27,7 @@ class DummyArchivar(Agent):
                 topic="Funktionen",
                 subtopic="Definition mit def",
                 level="beginner",
-                source="dummy:cs50p_lecture_0",
+                source="dummy:source_a_lecture_0",
                 content_md="Funktionen werden mit `def name():` definiert.",
             ),
             Card(
@@ -35,7 +35,7 @@ class DummyArchivar(Agent):
                 topic="Funktionen",
                 subtopic="Parameter und Rückgabewerte",
                 level="beginner",
-                source="dummy:cs50p_lecture_0",
+                source="dummy:source_a_lecture_0",
                 content_md="Parameter stehen in Klammern, `return` liefert ein Ergebnis.",
             ),
             Card(
@@ -43,7 +43,7 @@ class DummyArchivar(Agent):
                 topic="Klassen",
                 subtopic="Dataclasses",
                 level="intermediate",
-                source="dummy:oop_masterclass",
+                source="dummy:source_b",
                 content_md="`@dataclass` erzeugt `__init__`, `__repr__` etc. automatisch.",
             ),
         ]

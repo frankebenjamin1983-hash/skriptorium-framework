@@ -1,22 +1,25 @@
 """
-sources/chroma_reader.py – Read-only-Adapter auf den DavidMalanVirtuell-Vectorstore.
+sources/chroma_reader.py – Read-only-Adapter auf einen Chroma-Vectorstore.
 
 Single-Source-of-Truth fuer Stufe-2-Quellinhalt. Der echte Archivar in
 Stufe 2 importiert ausschliesslich diesen Reader – nicht chromadb direkt
-und auch nicht die _extracted.md-Dateien. So bleiben Indizierung und
-Buch-Generierung auf demselben Stand, ohne dass wir eine zweite Pipeline
-pflegen muessten.
+und auch nicht die _extracted.md-Dateien.
+
+Konfiguration:
+  - Pfad: Umgebungsvariable PYCOMPENDIUM_CHROMA_DIR oder Konstruktor-Argument
+  - Collection: Umgebungsvariable PYCOMPENDIUM_CHROMA_COLLECTION oder
+    Konstruktor-Argument
 
 Vertrag:
-  - liest read-only aus C:\\Users\\bfran\\Ai Projekte\\DavidMalanVirtuell\\data\\vectorstore
+  - liest read-only
   - chromadb wird LAZY importiert (erst im Konstruktor), damit Stufe 1
     ohne installierte chromadb-Abhaengigkeit laeuft
   - liefert Chunks als Pydantic-Modelle (id, document, metadata)
 
-Aufruf-Beispiel (Stufe 2):
+Aufruf-Beispiel:
 
-    from sources.chroma_reader import DavidMalanChromaReader
-    reader = DavidMalanChromaReader()
+    from sources.chroma_reader import ChromaReader
+    reader = ChromaReader()
     print(reader.count(), "Chunks im Index")
     for chunk in reader.iter_chunks(batch_size=100):
         ...
@@ -24,16 +27,24 @@ Aufruf-Beispiel (Stufe 2):
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any, Iterator
 
 from pydantic import BaseModel
 
 
-DEFAULT_VECTORSTORE_PATH = Path(
-    r"C:\Users\bfran\Ai Projekte\DavidMalanVirtuell\data\vectorstore"
-)
-DEFAULT_COLLECTION = "cs50"  # aus DavidMalanVirtuell/knowledge/cs50x/rag_index.py
+def _default_vectorstore_path() -> Path:
+    env = os.getenv("PYCOMPENDIUM_CHROMA_DIR")
+    if env:
+        return Path(env).expanduser().resolve()
+    # Fallback: ../knowledge_source/vectorstore relativ zum Repo
+    return (Path(__file__).resolve().parent.parent.parent
+            / "knowledge_source" / "vectorstore")
+
+
+def _default_collection() -> str:
+    return os.getenv("PYCOMPENDIUM_CHROMA_COLLECTION", "knowledge")
 
 
 class Chunk(BaseModel):
@@ -43,21 +54,21 @@ class Chunk(BaseModel):
     metadata: dict[str, Any] = {}
 
 
-class DavidMalanChromaReader:
+class ChromaReader:
     """Read-only-Wrapper um den Chroma-PersistentClient."""
 
     def __init__(
         self,
-        store_path: Path = DEFAULT_VECTORSTORE_PATH,
-        collection_name: str = DEFAULT_COLLECTION,
+        store_path: Path | None = None,
+        collection_name: str | None = None,
     ):
-        self.store_path = Path(store_path)
-        self.collection_name = collection_name
+        self.store_path = Path(store_path) if store_path else _default_vectorstore_path()
+        self.collection_name = collection_name or _default_collection()
 
         if not self.store_path.exists():
             raise FileNotFoundError(
                 f"Chroma-Store nicht gefunden: {self.store_path}. "
-                "Pfad pruefen oder DavidMalanVirtuell-Indizierung laufen lassen."
+                "Setze PYCOMPENDIUM_CHROMA_DIR oder store_path im Konstruktor."
             )
 
         # Lazy import – chromadb ist eine Stufe-2-Dependency.
@@ -128,7 +139,7 @@ class DavidMalanChromaReader:
 
 def _smoke():  # pragma: no cover
     """Manueller Smoke-Test. python -m sources.chroma_reader"""
-    reader = DavidMalanChromaReader()
+    reader = ChromaReader()
     print(f"Store: {reader.store_path}")
     print(f"Collections: {reader.list_collections()}")
     print(f"Chunks in '{reader.collection_name}': {reader.count()}")

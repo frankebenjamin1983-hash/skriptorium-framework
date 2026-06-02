@@ -1,16 +1,20 @@
 # PyCompendium
 
-Agententeam aus Claude + Grok, das aus mehreren Python-Lehrmaterialien
-(cs50p, OOP Masterclass, NumPy/Matplotlib, Rappert, Python-Doku) ein
-zusammenhängendes deutsches Fachbuch baut – kapitelweise, mit
+Agententeam aus Claude + Grok, das aus extrahierten Lehrmaterialien
+ein zusammenhängendes deutsches Fachbuch baut – kapitelweise, mit
 Quellenbelegen, ohne Redundanz.
+
+Quellen sind vom Nutzer bereitzustellen (z. B. eigene Notizen,
+gemeinfreie Materialien, offene Dokumentationen). Erwartet wird ein
+Verzeichnis mit Markdown-Dateien nach dem Muster `*_extracted.md`,
+das per Umgebungsvariable `PYCOMPENDIUM_SOURCE_DIR` angegeben wird.
 
 ## Stufenplan
 
 | Stufe | Was | Status |
 |-------|-----|--------|
 | 1 | Pipeline-Gerüst, Schemas, Dummy-Agenten, Heuristik-Importer, Tests | ✅ |
-| 2 | Echte LLM-Calls (Claude für Autor/Lektorat, Grok für Archivar/Faktenprüfer/Quiz) | offen |
+| 2 | Echte LLM-Calls für Archivar / Lektor / Autor / Faktenprüfer / Lektorat | ✅ |
 | 3 | Async + Fan-out pro Kapitel | offen |
 | 4 | Stilfeinheiten, Quellen-Verifikation, MkDocs-Rendering | offen |
 
@@ -27,10 +31,27 @@ python run.py
 python -m pytest -q
 ```
 
+Für die LLM-Pipeline:
+
+```powershell
+# .env anlegen (siehe .env.example) mit ANTHROPIC_API_KEY und XAI_API_KEY
+# Quellordner setzen
+$env:PYCOMPENDIUM_SOURCE_DIR = "C:\Pfad\zu\deinem\knowledge"
+
+# Karten aus Quellen ableiten
+python -m tools.build_real_cards
+
+# Health-Check beider APIs
+python -m tools.probe_keys
+
+# Volllauf Archivar (~6 Cent)
+python run.py --only Archivar --real-archivar
+```
+
 ## Architektur
 
 ```
-Quell-MDs (DavidMalanVirtuell)
+Quell-MDs (PYCOMPENDIUM_SOURCE_DIR)
         │
         ▼
  ┌──────────────┐
@@ -38,7 +59,7 @@ Quell-MDs (DavidMalanVirtuell)
  └──────┬───────┘
         ▼
  ┌──────────────┐
- │   Lektor     │  Opus    – Buch-Outline
+ │   Lektor     │  Sonnet  – Buch-Outline
  └──────┬───────┘
         ▼
  ┌─ pro Kapitel ─────────────────────┐
@@ -57,8 +78,8 @@ Quell-MDs (DavidMalanVirtuell)
 
 | Agent | Modell (Stufe 2) | Liest | Schreibt |
 |-------|------------------|-------|----------|
-| Archivar | Grok-fast | Quell-MDs / Chroma | `cards.json` |
-| Lektor | Claude Opus | `cards.json` | `outline.json` |
+| Archivar | Grok-fast | Quell-MDs | `cards.json` |
+| Lektor | Claude Sonnet | `cards.json` | `outline.json` |
 | Autor | Claude Sonnet | `outline`, Karten | `chapters/NN.md` |
 | Faktenprüfer | Grok-fast | Drafts, Karten | `reviews/NN_facts.json` |
 | Lektorat | Claude Sonnet | Drafts, Fakten-Reviews | `reviews/NN_edit.json` |
@@ -70,10 +91,11 @@ Quell-MDs (DavidMalanVirtuell)
 ```
 PyCompendium/
 ├── agents/          # Eine Datei pro Rolle
-├── tools/           # One-Shot-Skripte (Importer)
-├── sources/         # Read-only-Adapter (Chroma, später Python-Doku)
+├── tools/           # One-Shot-Skripte (Importer, Inspektion)
+├── sources/         # Read-only-Adapter (Chroma-Stub für Stufe 3)
 ├── tests/           # pytest – deterministisch, kein Netz
 ├── artifacts/       # Laufzeit-Output (gitignored)
+├── llm.py           # Adapter um Anthropic- und xAI-SDKs
 ├── schemas.py       # Pydantic-Verträge
 ├── orchestrator.py  # Sequenzielle Pipeline + Validierung + Log
 ├── recovery.py      # Wiederanlauf aus runs.jsonl
@@ -90,35 +112,30 @@ PyCompendium/
 - **Pydantic-Verträge an Agenten-Grenzen.** Tippfehler in Schlüsselnamen
   werden sofort gefangen, statt im nächsten Agenten als KeyError oder
   stilles Fehlverhalten aufzutauchen.
-- **Eine Datei pro Agent.** Macht Stufe 2 (Composition mit LLM-Client)
-  ohne Mega-Datei-Wuchern möglich.
-- **Chroma-Reader auf DavidMalanVirtuell.** Wir bauen keine zweite
-  Klassifikations-Pipeline neben dem existierenden Vector-Index – nur
-  einen Reader, der dessen Chunks als Karten interpretiert.
+- **Eine Datei pro Agent.** Composition statt Vererbung, jeder Agent
+  bekommt seinen LLM-Client im Konstruktor.
+- **Quellen sind extern.** Der Importer liest ausschließlich, das
+  Quellverzeichnis bleibt außerhalb des Repos.
 
-## Stand pro Stufe
+## CLI-Optionen
 
-### Stufe 1 (✅)
+```
+python run.py --list                          # Pipeline anzeigen
+python run.py --dry-run                       # Plan ohne Ausführung
+python run.py --clean                         # artifacts/ + runs.jsonl löschen
+python run.py --only AGENT                    # nur einen Agent
+python run.py --from AGENT [--to AGENT]       # Bereich
+python run.py --chapter NN                    # ein Kapitel
+python run.py --real-archivar [--sample N]    # echte Grok-Calls
+python run.py --real-lektor                   # echter Lektor
+python run.py --real-autor                    # echter Autor
+python run.py --real-fakt                     # echter Faktenprüfer
+python run.py --real-lektorat                 # echtes Lektorat
+```
 
-- 7-Agenten-Dummy-Pipeline (`agents/*.py`)
-- Pydantic-Verträge mit Pre/Post-Validierung im Orchestrator
-- `runs.jsonl` mit Run-IDs (Lauf-Auflösung möglich)
-- Heuristik-Importer `tools/build_real_cards.py` → 1665 realistische Karten
-- pytest-Suite (25 Tests, < 1 s)
-- Style-Guide-Entwurf in `style_guide.md`
+## Hinweis zur Nutzung
 
-### Stufe 2 (offen)
-
-- Composition statt Vererbung: jeder Agent bekommt einen `llm_client` im
-  Konstruktor injiziert.
-- `sources/chroma_reader.py` (Stub fertig) wird zur Quelle für den echten
-  Archivar.
-- Token-/Kosten-Tracking pro Agent in `runs.jsonl`.
-- Prompts pro Rolle in `prompts/<agent>.md`.
-
-## Sicherheits-Regeln
-
-- Niemals in fremde Ordner schreiben. `DavidMalanVirtuell` wird
-  ausschließlich lesend benutzt.
-- Keine Git-Pushes, keine zerstörerischen Aktionen.
-- `.env` mit API-Keys ist gitignored.
+Die mit diesem Werkzeug erzeugten Texte stützen sich auf die vom
+Nutzer bereitgestellten Quellen. Für eine Veröffentlichung der Ausgabe
+ist sicherzustellen, dass alle Quellen entsprechend lizenziert oder
+selbst verfasst sind und alle nötigen Belege im Buch enthalten sind.

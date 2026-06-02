@@ -58,12 +58,12 @@ Pflichten:
   Satzende.
 - ALLE Aussagen muessen sich auf die Wissens-Karten stuetzen. Fuer jede
   nicht-triviale Aussage eine Fussnote. KRITISCH: Die Fussnote-ID MUSS
-  EXAKT die id-Feld-Werte aus dem JSON sein (z. B. cs50p_l0_functions__0003),
-  NICHT abgekuerzt. Syntax im Text: [^cs50p_l0_functions__0003]
+  EXAKT der id-Feld-Wert aus dem JSON sein (z. B. source_a__0003),
+  NICHT abgekuerzt. Syntax im Text: [^source_a__0003]
   Sammelliste am Ende:
-    [^cs50p_l0_functions__0003]: cs50p_l0_functions__0003
+    [^source_a__0003]: source_a__0003
   Falsch: [^card_003] – das ist eine erfundene ID.
-  Richtig: [^cs50p_l0_functions__0003] – exakt die id aus den Karten.
+  Richtig: [^source_a__0003] – exakt die id aus den Karten.
 - KEINE Aussagen erfinden, die nicht in den Karten stehen.
 - Code-Beispiele nur, wenn sie aus den Karten kommen ODER wenn sie eine
   Karte direkt illustrieren. Max 15 Zeilen pro Block.

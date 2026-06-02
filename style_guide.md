@@ -184,7 +184,7 @@ auf die Quelle:
 Dataclasses ersetzen oft das manuelle Schreiben von `__init__`. ¹
 
 ---
-¹ cs50p Lecture 8, OOP Masterclass §4.2
+¹ source_a Kapitel 8, source_b §4.2
 ```
 
 Der Faktenprüfer-Agent kann diese Fußnoten gegen die Original-Karten
@@ -218,10 +218,10 @@ Jede Topic-Karte trägt eine `role`:
   verwenden. Nur einbinden, wo es einen echten thematischen Zusammenhang
   zum Kapitel-Thema gibt.
 
-Konkretes Beispiel: Die cs50x-Lektion „Speicher" (in C) ist
-supplementary. Im Python-Kapitel zum Referenz-Modell von Objekten darf
-sie als kurzer Querverweis erscheinen („Wer C kennt: Python-Variablen
-sind im Kern Pointer-mit-Refcount") — aber sie definiert das Python-Kapitel
+Konkretes Beispiel: Eine Lektion über C-Speicher ist supplementary.
+Im Python-Kapitel zum Referenz-Modell von Objekten darf sie als kurzer
+Querverweis erscheinen („Wer C kennt: Python-Variablen sind im Kern
+Pointer-mit-Refcount") — aber sie definiert das Python-Kapitel
 nicht.
 
 Faustregel für den Autor: wenn das Kapitel ohne die supplementary-Karte

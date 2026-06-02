@@ -16,7 +16,7 @@ from schemas import (
 def test_card_roundtrip(tmp_artifacts: Path):
     card = Card(
         id="c1", topic="Funktionen", subtopic="def", level="beginner",
-        source="cs50p_l0", content_md="Mit `def` definieren.",
+        source="source_a", content_md="Mit `def` definieren.",
     )
     p = tmp_artifacts / "card.json"
     write_json(p, card, model=Card)

@@ -1,0 +1,5 @@
+[
+  ["python_doc", ["core", "intermediate", "python_doc"]],
+  ["tutorials/", ["core", "beginner", "tutorial"]],
+  ["", ["core", "beginner", "source"]]
+]

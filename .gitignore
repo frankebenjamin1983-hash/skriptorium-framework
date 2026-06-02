@@ -7,6 +7,14 @@ runs.jsonl
 .env
 .env.local
 
+# --- Quellspezifische Konfiguration (lokal) ---
+tools/source_map.json
+
+# --- Persoenliche Notizen ---
+OVERNIGHT_LOG.md
+NOTES.md
+TODO.md
+
 # --- Python ---
 __pycache__/
 *.py[cod]

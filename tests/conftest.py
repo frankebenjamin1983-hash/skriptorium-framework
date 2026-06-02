@@ -3,7 +3,7 @@ tests/conftest.py – gemeinsame Fixtures.
 
 Wir wollen Tests, die:
   - in einem isolierten Temp-Verzeichnis laufen (kein Stören am echten artifacts/)
-  - keine Abhängigkeit auf externe Dateien (DavidMalanVirtuell) haben
+  - keine Abhängigkeit auf externe Dateien haben
   - keine Netzwerk-Calls auslösen
 """
 
