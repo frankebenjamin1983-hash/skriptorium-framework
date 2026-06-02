@@ -41,6 +41,8 @@ def default_pipeline(
     real_archivar: bool = False,
     real_lektor: bool = False,
     real_autor: bool = False,
+    real_fakt: bool = False,
+    real_lektorat: bool = False,
     sample: int | None = None,
     chapter: str | None = None,
 ) -> list[Agent]:
@@ -66,12 +68,24 @@ def default_pipeline(
     else:
         autor = DummyAutor()
 
+    if real_fakt:
+        from agents.faktenpruefer_real import RealFaktenpruefer
+        fakt: Agent = RealFaktenpruefer(chapter_id=chapter)
+    else:
+        fakt = DummyFaktenpruefer()
+
+    if real_lektorat:
+        from agents.lektorat_real import RealLektorat
+        lektorat: Agent = RealLektorat(chapter_id=chapter)
+    else:
+        lektorat = DummyLektorat()
+
     return [
         archivar,
         lektor,
         autor,
-        DummyFaktenpruefer(),
-        DummyLektorat(),
+        fakt,
+        lektorat,
         DummyQuizMaster(),
         DummyChefredakteur(),
     ]
@@ -163,22 +177,29 @@ def select_pipeline(
     pipeline: list[Agent],
     only: str | None,
     start_from: str | None,
+    end_at: str | None = None,
 ) -> list[Agent]:
-    """--only / --from in die Pipeline-Auswahl uebersetzen."""
+    """--only / --from / --to in die Pipeline-Auswahl uebersetzen."""
     if only:
         for a in pipeline:
             if a.name == only:
                 return [a]
         raise SystemExit(f"Unbekannter Agent: {only}. Verfuegbar: {[a.name for a in pipeline]}")
 
+    names = [a.name for a in pipeline]
+    start_idx = 0
     if start_from:
-        names = [a.name for a in pipeline]
         if start_from not in names:
             raise SystemExit(f"Unbekannter Agent: {start_from}. Verfuegbar: {names}")
-        idx = names.index(start_from)
-        return pipeline[idx:]
+        start_idx = names.index(start_from)
 
-    return pipeline
+    end_idx = len(pipeline)
+    if end_at:
+        if end_at not in names:
+            raise SystemExit(f"Unbekannter Agent: {end_at}. Verfuegbar: {names}")
+        end_idx = names.index(end_at) + 1  # inklusive
+
+    return pipeline[start_idx:end_idx]
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -199,12 +220,18 @@ def main() -> None:
                         help="Nur diesen Agenten ausfuehren (Name aus --list).")
     parser.add_argument("--from", dest="start_from", metavar="AGENT",
                         help="Ab diesem Agenten weitermachen (vorherige Artefakte muessen existieren).")
+    parser.add_argument("--to", dest="end_at", metavar="AGENT",
+                        help="Bei diesem Agenten aufhoeren (inklusive).")
     parser.add_argument("--real-archivar", action="store_true",
                         help="Stufe-2-Archivar (Grok) statt Dummy verwenden. Kostet Tokens!")
     parser.add_argument("--real-lektor", action="store_true",
                         help="Stufe-2-Lektor (Claude Sonnet) statt Dummy verwenden.")
     parser.add_argument("--real-autor", action="store_true",
                         help="Stufe-2-Autor (Claude Sonnet) statt Dummy verwenden.")
+    parser.add_argument("--real-fakt", action="store_true",
+                        help="Stufe-2-Faktenpruefer (Grok-fast) statt Dummy verwenden.")
+    parser.add_argument("--real-lektorat", action="store_true",
+                        help="Stufe-2-Lektorat (Claude Sonnet) statt Dummy verwenden.")
     parser.add_argument("--chapter", metavar="ID",
                         help="Nur dieses Kapitel verarbeiten (z. B. '07'). Nur sinnvoll mit --real-autor.")
     parser.add_argument("--sample", type=int, metavar="N",
@@ -222,6 +249,8 @@ def main() -> None:
         real_archivar=args.real_archivar,
         real_lektor=args.real_lektor,
         real_autor=args.real_autor,
+        real_fakt=args.real_fakt,
+        real_lektorat=args.real_lektorat,
         sample=args.sample,
         chapter=args.chapter,
     )
@@ -232,7 +261,9 @@ def main() -> None:
             print(f"  {i:>2}. {a.name}")
         return
 
-    selected = select_pipeline(pipeline, only=args.only, start_from=args.start_from)
+    selected = select_pipeline(
+        pipeline, only=args.only, start_from=args.start_from, end_at=args.end_at,
+    )
 
     if args.dry_run:
         print("Dry-Run – wuerde ausfuehren:")
