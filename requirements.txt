@@ -1,0 +1,15 @@
+# PyCompendium – Runtime-Dependencies
+#
+# Stufe 1 (aktuell):
+pydantic>=2.0
+
+# Stufe 1, Entwicklung / Tests:
+pytest>=8.0
+
+# Stufe 2 (echte LLM-Calls) – auskommentiert, damit nichts ungewollt
+# installiert wird. Vor Stufe 2 die folgenden Zeilen entkommentieren:
+#
+# anthropic>=0.40        # Claude Sonnet/Opus für Autor, Lektorat, Lektor, Chefredakteur
+# openai>=1.50           # Grok via OpenAI-kompatibler API für Archivar, Faktenprüfer, Quiz
+# chromadb>=0.5          # Reader auf DavidMalanVirtuell-Vectorstore (sources/chroma_reader.py)
+# python-dotenv>=1.0     # .env mit ANTHROPIC_API_KEY und XAI_API_KEY laden
