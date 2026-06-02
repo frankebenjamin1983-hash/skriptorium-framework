@@ -1,7 +1,7 @@
 # --- Laufzeit-Artefakte (werden in jedem Lauf neu erzeugt) ---
 artifacts/
 runs.jsonl
-extract_*.log
+*.log
 
 # --- Geheimnisse ---
 .env
