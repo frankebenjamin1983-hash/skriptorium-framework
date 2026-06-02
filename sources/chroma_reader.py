@@ -33,7 +33,7 @@ from pydantic import BaseModel
 DEFAULT_VECTORSTORE_PATH = Path(
     r"C:\Users\bfran\Ai Projekte\DavidMalanVirtuell\data\vectorstore"
 )
-DEFAULT_COLLECTION = "knowledge"  # ggf. anpassen, sobald wir wissen, wie der Index heisst
+DEFAULT_COLLECTION = "cs50"  # aus DavidMalanVirtuell/knowledge/cs50x/rag_index.py
 
 
 class Chunk(BaseModel):
