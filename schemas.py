@@ -42,6 +42,16 @@ class Card(BaseModel):
     level: str
     source: str
     content_md: str
+    # Rolle der Karte im Buch:
+    #   "primary"        – Kernmaterial, gehört in einen Kapitel-Volltext
+    #   "supplementary"  – Hintergrund/Querverweis, nur einbinden wo passender
+    #                      Zusammenhang besteht (z. B. cs50x-C-Algorithmen im
+    #                      Python-Kapitel „Algorithmische Effizienz")
+    role: str = "primary"
+    # Track entscheidet thematische Einsortierung (core, scientific,
+    # cs_fundamentals, advanced). Bei Stufe 1 weich, in Stufe 2 vom Lektor
+    # respektiert.
+    track: str = "core"
 
 
 class Chapter(BaseModel):

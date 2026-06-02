@@ -119,9 +119,26 @@ def split_by_headings(text: str) -> list[tuple[int, str, str]]:
     return [(lvl, head, "\n".join(body).strip()) for lvl, head, body in blocks]
 
 
+def role_for_track(track: str) -> str:
+    """
+    Welche Rolle haben Karten dieses Tracks im Python-Buch?
+
+    cs_fundamentals = cs50x (C, SQL, HTML, Flask, etc.) → supplementary:
+        Inhalte sind nicht primär Python, taugen aber als Querverweise
+        wo sie Python-Themen erhellen (z. B. C-Algorithmen → algorithmische
+        Effizienz in Python).
+
+    Alle anderen Tracks (core, scientific, advanced) → primary.
+    """
+    if track == "cs_fundamentals":
+        return "supplementary"
+    return "primary"
+
+
 def cards_from_file(file_path: Path) -> list[Card]:
     """Heuristik: H2 = topic, H3 = subtopic; Inhalt darunter = content_md."""
     track, default_level, source_short = classify_source(file_path)
+    role = role_for_track(track)
     blocks = split_by_headings(file_path.read_text(encoding="utf-8", errors="ignore"))
 
     cards: list[Card] = []
@@ -141,6 +158,8 @@ def cards_from_file(file_path: Path) -> list[Card]:
                 level=default_level,
                 source=source_short,
                 content_md=pending_topic_body,
+                role=role,
+                track=track,
             ))
         pending_topic_body = ""
 
@@ -167,6 +186,8 @@ def cards_from_file(file_path: Path) -> list[Card]:
                     level=default_level,
                     source=source_short,
                     content_md=body or f"_(siehe übergeordnetes Topic: {current_topic})_",
+                    role=role,
+                    track=track,
                 ))
         # H4+ werden zum vorherigen H3-Block addiert (ignorieren wir hier strukturell)
 
@@ -200,10 +221,18 @@ def main() -> None:
 
     # Statistik.
     from collections import Counter
-    by_track = Counter(c.source for c in all_cards)
+    by_source = Counter(c.source for c in all_cards)
+    by_role = Counter(c.role for c in all_cards)
+    by_track = Counter(c.track for c in all_cards)
     print(f"\nGesamt: {len(all_cards)} Karten in {out_path}")
-    print("Verteilung nach Quelle:")
-    for src, n in by_track.most_common():
+    print("\nVerteilung nach Rolle:")
+    for r, n in by_role.most_common():
+        print(f"  {r:15s} {n:5d}")
+    print("\nVerteilung nach Track:")
+    for t, n in by_track.most_common():
+        print(f"  {t:18s} {n:5d}")
+    print("\nVerteilung nach Quelle (Top 10):")
+    for src, n in by_source.most_common(10):
         print(f"  {src:30s} {n:4d}")
 
 

@@ -59,3 +59,40 @@ def test_classify_source_cs50p_l0():
     assert track == "core"
     assert level == "beginner"
     assert "cs50p_l0" in src
+
+
+def test_role_assignment_cs50x_is_supplementary(tmp_path: Path):
+    """cs50x-Karten muessen role=supplementary haben (Querverweis-Material)."""
+    md = "# Lecture\n\n## Pointers in C\nC pointers explain Python's reference model.\n"
+    f = tmp_path / "cs50x" / "lektion_04_speicher_extracted.md"
+    f.parent.mkdir(parents=True)
+    f.write_text(md, encoding="utf-8")
+    cards = cards_from_file(f)
+    assert cards
+    assert all(c.role == "supplementary" for c in cards)
+    assert all(c.track == "cs_fundamentals" for c in cards)
+
+
+def test_role_assignment_cs50p_is_primary(tmp_path: Path):
+    """cs50p-Karten sind Kernmaterial (role=primary, track=core)."""
+    md = "# L0\n\n## Functions\nMit def definieren.\n"
+    f = tmp_path / "cs50p" / "02_cs50p_-_lecture_0_-_functions_extracted.md"
+    f.parent.mkdir(parents=True)
+    f.write_text(md, encoding="utf-8")
+    cards = cards_from_file(f)
+    assert cards
+    assert all(c.role == "primary" for c in cards)
+    assert all(c.track == "core" for c in cards)
+
+
+def test_role_assignment_cs50x_lecture6_is_primary(tmp_path: Path):
+    """Ausnahme: cs50x Lecture 6 = Python -> primary, nicht supplementary."""
+    md = "# L6\n\n## Python intro\nDictionary basics.\n"
+    f = tmp_path / "cs50x" / "lektion_06_python_extracted.md"
+    f.parent.mkdir(parents=True)
+    f.write_text(md, encoding="utf-8")
+    cards = cards_from_file(f)
+    assert cards
+    assert all(c.role == "primary" for c in cards), \
+        "cs50x Lecture 6 ist die Python-Vorlesung, gehoert zum Kernmaterial."
+    assert all(c.track == "core" for c in cards)

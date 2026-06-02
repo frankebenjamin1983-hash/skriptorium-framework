@@ -171,15 +171,34 @@ git status
    Lektor-Lauf in Stufe 2 filtern (nur „core"-Track), oder soll cs50x
    z. B. in eigene Anhang-Kapitel?
 
+## Entschiedene Punkte (Nachgelagert)
+
+**Karten-Filter für cs50x (Frage 2 oben)** — Entscheidung des Users:
+„berücksichtigen bei Zusammenhängen". Umgesetzt durch zwei neue Felder
+im Card-Schema:
+
+- `role`: `primary` (Kernmaterial, gehört in Kapitel-Volltext) oder
+  `supplementary` (Hintergrund/Querverweis, nur wo passender Zusammenhang)
+- `track`: `core` / `scientific` / `advanced` / `cs_fundamentals`
+
+Aktuelle Verteilung der 1665 Karten:
+- **Primary: 734** (562 core + 90 scientific + 82 advanced)
+- **Supplementary: 931** (alles cs_fundamentals = cs50x außer Lecture 6
+  Python, die als Ausnahme primary bleibt)
+
+Der Stufe-2-Lektor bekommt im System-Prompt die Anweisung, primary als
+Bauplan und supplementary nur als Querverweis-Pool zu behandeln. Die
+Regel steht zusätzlich im `style_guide.md` (Abschnitt 8).
+
+Tests prüfen die Rollen-Zuordnung (`test_role_assignment_*`). 28/28 grün.
+
 ## Offene Fragen für dich
 
 1. **Chroma-Collection-Name**: in `sources/chroma_reader.py` steht
    `DEFAULT_COLLECTION = "knowledge"`. Bitte morgen mit
    `python -m sources.chroma_reader` prüfen, ob das stimmt — sonst
    gibt der Reader die echten Namen in der Fehlermeldung aus.
-2. **Karten-Filter für cs50x**: standardmäßig alle 1665 Karten in Outline,
-   oder cs50x ausschließen?
-3. **API-Keys**: `.env` mit `ANTHROPIC_API_KEY` und `XAI_API_KEY` brauchen
+2. **API-Keys**: `.env` mit `ANTHROPIC_API_KEY` und `XAI_API_KEY` brauchen
    wir vor dem ersten echten Stufe-2-Lauf. Aktuell weder Datei noch Keys
    im Projekt — bewusst, damit nichts versehentlich ausgelöst wird.
 

@@ -208,7 +208,31 @@ list = [1, 2, 3]
 Schwerere Grafik (Mermaid, Matplotlib-Output) erst, wenn MkDocs-Setup
 das stabil rendert.
 
-## 7. Was der Style-Guide NICHT regelt
+## 8. Primary vs. supplementary
+
+Jede Topic-Karte trägt eine `role`:
+
+- `primary` — Kernmaterial. Gehört in den Kapitel-Volltext, wird vom
+  Autor zur Erklärung herangezogen.
+- `supplementary` — Querverweis-Material. **Nicht** als Hauptinhalt
+  verwenden. Nur einbinden, wo es einen echten thematischen Zusammenhang
+  zum Kapitel-Thema gibt.
+
+Konkretes Beispiel: Die cs50x-Lektion „Speicher" (in C) ist
+supplementary. Im Python-Kapitel zum Referenz-Modell von Objekten darf
+sie als kurzer Querverweis erscheinen („Wer C kennt: Python-Variablen
+sind im Kern Pointer-mit-Refcount") — aber sie definiert das Python-Kapitel
+nicht.
+
+Faustregel für den Autor: wenn das Kapitel ohne die supplementary-Karte
+inhaltlich vollständig bleibt, gehört sie höchstens in eine
+„Tiefer-Tauchen"-Box, nicht in den Haupttext.
+
+Faustregel für den Lektor: supplementary-Karten zählen nicht zur
+„Themen-Abdeckung" eines Kapitels. Ein Kapitel ist erst dann komplett,
+wenn alle relevanten primary-Karten abgedeckt sind.
+
+## 9. Was der Style-Guide NICHT regelt
 
 - Welche Kapitel das Buch hat — das ist der Lektor
 - Welche Beispiele in welchem Kapitel — das ist der Autor pro Kapitel
