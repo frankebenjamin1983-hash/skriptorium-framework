@@ -48,18 +48,26 @@ Abschnitt "2. Aufbau eines Kapitels":
                     Style-Guide Abschnitt 3.)
   4. Zum Mitnehmen (## H2 "Zum Mitnehmen", 3-5 Bullets, je 1-2 Saetze)
 
+Reihenfolge der Abschnitte: Grundkonzept zuerst, Erweiterungen danach.
+Dokumentation (Docstrings) gehoert direkt nach "Funktionen definieren",
+nicht ans Kapitelende.
+
 Pflichten:
 - TONALITAET wie Style-Guide: sachlich, knapp, leichter ostwestfaelischer
   Zynismus wo natuerlich, keine Werbe-Sprache, keine Ausrufezeichen am
   Satzende.
 - ALLE Aussagen muessen sich auf die Wissens-Karten stuetzen. Fuer jede
-  nicht-triviale Aussage eine Fussnote in der Form `[^card_xxx]`,
-  Sammelliste am Kapitel-Ende. Beispiel:
-    "Dataclasses ersetzen oft das manuelle Schreiben von `__init__`[^card_042]."
+  nicht-triviale Aussage eine Fussnote. KRITISCH: Die Fussnote-ID MUSS
+  EXAKT die id-Feld-Werte aus dem JSON sein (z. B. cs50p_l0_functions__0003),
+  NICHT abgekuerzt. Syntax im Text: [^cs50p_l0_functions__0003]
+  Sammelliste am Ende:
+    [^cs50p_l0_functions__0003]: cs50p_l0_functions__0003
+  Falsch: [^card_003] – das ist eine erfundene ID.
+  Richtig: [^cs50p_l0_functions__0003] – exakt die id aus den Karten.
 - KEINE Aussagen erfinden, die nicht in den Karten stehen.
 - Code-Beispiele nur, wenn sie aus den Karten kommen ODER wenn sie eine
   Karte direkt illustrieren. Max 15 Zeilen pro Block.
-- Type Hints ab Kapitel 5 ja, davor weglassen (siehe Style-Guide).
+- Type Hints ab Kapitel 5 ja (Kapitel-ID >= 05), davor weglassen.
 
 Antworte mit dem reinen Markdown-Volltext. Kein "Hier ist das Kapitel:"
 davor, keine Erklaerung dahinter.
@@ -84,7 +92,8 @@ class RealAutor(Agent):
         # Style-Guide aus Projekt-Root laden – einmal, nicht pro Kapitel
         sg_path = Path(__file__).resolve().parent.parent / "style_guide.md"
         self.style_guide = sg_path.read_text(encoding="utf-8") if sg_path.exists() else ""
-        self.system_prompt = SYSTEM_PROMPT_TEMPLATE.format(style_guide=self.style_guide)
+        # .format() faellt bei den vielen {} in Style-Guide/JSON-Beispiel auf die Nase
+        self.system_prompt = SYSTEM_PROMPT_TEMPLATE.replace("{style_guide}", self.style_guide)
 
     def run(self, context: dict, artifacts_dir: Path) -> dict:
         chapters = context["chapters"]

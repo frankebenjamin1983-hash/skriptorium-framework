@@ -28,10 +28,10 @@ from schemas import (
 from .base import Agent
 
 
-# Erkennt [^card_xxx] Fussnoten im Markdown
-FOOTNOTE_RE = re.compile(r"\[\^card_[\w]+\]")
-# Und die Sammelliste am Ende: [^card_xxx]: <full_card_id>
-FOOTNOTE_DEF_RE = re.compile(r"\[\^(card_[\w]+)\]:\s*(\S+)")
+# Erkennt alle [^...] Fußnoten – unabhaengig vom ID-Format
+FOOTNOTE_RE = re.compile(r"\[\^([\w]+(?:__[\w]+)*)\]")
+# Sammelliste am Ende: [^id]: id
+FOOTNOTE_DEF_RE = re.compile(r"\[\^([\w]+(?:__[\w]+)*)\]:\s*(\S+)")
 
 
 SYSTEM_PROMPT = """\
