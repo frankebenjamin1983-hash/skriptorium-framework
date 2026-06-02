@@ -7,6 +7,7 @@ from .faktenpruefer import DummyFaktenpruefer
 from .lektor import DummyLektor
 from .lektorat import DummyLektorat
 from .quizmaster import DummyQuizMaster
+from .revisor import DummyRevisor
 
 __all__ = [
     "DummyArchivar",
@@ -15,5 +16,6 @@ __all__ = [
     "DummyFaktenpruefer",
     "DummyLektorat",
     "DummyQuizMaster",
+    "DummyRevisor",
     "DummyChefredakteur",
 ]

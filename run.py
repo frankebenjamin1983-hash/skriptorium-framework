@@ -43,6 +43,7 @@ def default_pipeline(
     real_autor: bool = False,
     real_fakt: bool = False,
     real_lektorat: bool = False,
+    real_revisor: bool = False,
     sample: int | None = None,
     chapter: str | None = None,
 ) -> list[Agent]:
@@ -80,12 +81,20 @@ def default_pipeline(
     else:
         lektorat = DummyLektorat()
 
+    if real_revisor:
+        from agents.revisor_real import RealRevisor
+        revisor: Agent = RealRevisor(chapter_id=chapter)
+    else:
+        from agents import DummyRevisor
+        revisor = DummyRevisor()
+
     return [
         archivar,
         lektor,
         autor,
         fakt,
         lektorat,
+        revisor,
         DummyQuizMaster(),
         DummyChefredakteur(),
     ]
@@ -232,6 +241,8 @@ def main() -> None:
                         help="Stufe-2-Faktenpruefer (Grok-fast) statt Dummy verwenden.")
     parser.add_argument("--real-lektorat", action="store_true",
                         help="Stufe-2-Lektorat (Claude Sonnet) statt Dummy verwenden.")
+    parser.add_argument("--real-revisor", action="store_true",
+                        help="Stufe-2-Revisor (Claude Sonnet) statt Dummy verwenden.")
     parser.add_argument("--chapter", metavar="ID",
                         help="Nur dieses Kapitel verarbeiten (z. B. '07'). Nur sinnvoll mit --real-autor.")
     parser.add_argument("--sample", type=int, metavar="N",
@@ -251,6 +262,7 @@ def main() -> None:
         real_autor=args.real_autor,
         real_fakt=args.real_fakt,
         real_lektorat=args.real_lektorat,
+        real_revisor=args.real_revisor,
         sample=args.sample,
         chapter=args.chapter,
     )

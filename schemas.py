@@ -164,6 +164,17 @@ class QuizMasterOutput(ContextModel):
     exercises: list[ExerciseRef]
 
 
+# Revisor: liest Drafts + Lektorat-/Fakten-Reviews, schreibt revidierte Kapitel
+class RevisorInput(ContextModel):
+    chapter_drafts: list[ChapterDraftRef]
+    edit_reviews: list[EditReviewRef]
+    facts_reviews: list[FactReviewRef] = []
+
+class RevisorOutput(ContextModel):
+    chapter_drafts: list[ChapterDraftRef]  # gleiche Schluessel, neue chars/Stand
+    revisions_dir: str
+
+
 # Chefredakteur: liest outline (Pfad), schreibt Buch
 class ChefredakteurInput(ContextModel):
     outline_path: str
