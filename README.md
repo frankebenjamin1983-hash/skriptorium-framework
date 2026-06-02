@@ -1,4 +1,4 @@
-# PyCompendium
+# Skriptorium
 
 Agententeam aus Claude + Grok, das aus extrahierten Lehrmaterialien
 ein zusammenhängendes deutsches Fachbuch baut – kapitelweise, mit
@@ -7,7 +7,7 @@ Quellenbelegen, ohne Redundanz.
 Quellen sind vom Nutzer bereitzustellen (z. B. eigene Notizen,
 gemeinfreie Materialien, offene Dokumentationen). Erwartet wird ein
 Verzeichnis mit Markdown-Dateien nach dem Muster `*_extracted.md`,
-das per Umgebungsvariable `PYCOMPENDIUM_SOURCE_DIR` angegeben wird.
+das per Umgebungsvariable `SKRIPTORIUM_SOURCE_DIR` angegeben wird.
 
 ## Stufenplan
 
@@ -36,7 +36,7 @@ Für die LLM-Pipeline:
 ```powershell
 # .env anlegen (siehe .env.example) mit ANTHROPIC_API_KEY und XAI_API_KEY
 # Quellordner setzen
-$env:PYCOMPENDIUM_SOURCE_DIR = "C:\Pfad\zu\deinem\knowledge"
+$env:SKRIPTORIUM_SOURCE_DIR = "C:\Pfad\zu\deinem\knowledge"
 
 # Karten aus Quellen ableiten
 python -m tools.build_real_cards
@@ -51,7 +51,7 @@ python run.py --only Archivar --real-archivar
 ## Architektur
 
 ```
-Quell-MDs (PYCOMPENDIUM_SOURCE_DIR)
+Quell-MDs (SKRIPTORIUM_SOURCE_DIR)
         │
         ▼
  ┌──────────────┐
@@ -89,7 +89,7 @@ Quell-MDs (PYCOMPENDIUM_SOURCE_DIR)
 ## Verzeichnisse
 
 ```
-PyCompendium/
+Skriptorium/
 ├── agents/          # Eine Datei pro Rolle
 ├── tools/           # One-Shot-Skripte (Importer, Inspektion)
 ├── sources/         # Read-only-Adapter (Chroma-Stub für Stufe 3)

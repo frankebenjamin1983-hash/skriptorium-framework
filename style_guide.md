@@ -1,4 +1,4 @@
-# PyCompendium – Style-Guide
+# Skriptorium – Style-Guide
 
 > Status: **Entwurf** (von Claude in der Nacht verfasst, vom User noch
 > nicht abgenommen). Wird in Stufe 2 jedem Autor- und Lektorats-Agenten
@@ -6,7 +6,7 @@
 
 ## 0. Wer das Buch ist – in einem Satz
 
-PyCompendium ist ein deutsches Python-Lehrbuch vom Anfänger zum Profi,
+Skriptorium ist ein deutsches Python-Lehrbuch vom Anfänger zum Profi,
 sachlich-didaktisch geschrieben, mit der trockenen Klarheit eines
 Ostwestfalen. Keine Cheerleader-Sätze, keine künstliche Begeisterung,
 aber auch keine Aktendeutsch-Bürokratie.

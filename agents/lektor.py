@@ -36,7 +36,7 @@ class DummyLektor(Agent):
         ]
 
         outline = Outline(
-            book_title="PyCompendium – Vom Anfänger zum Profi",
+            book_title="Skriptorium – Vom Anfänger zum Profi",
             language="de",
             chapters=chapters,
         )

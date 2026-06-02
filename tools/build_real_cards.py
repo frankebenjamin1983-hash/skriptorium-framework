@@ -16,7 +16,7 @@ Level + Track werden über den Quell-Pfad abgeleitet (Mapping unten).
 Die Verfeinerung pro Karte (z. B. „intermediate" statt pauschaler
 Default) ist Job des echten Archivars in Stufe 2.
 
-Aufruf (vom PyCompendium-Root):
+Aufruf (vom Skriptorium-Root):
     python -m tools.build_real_cards
 """
 
@@ -28,7 +28,7 @@ import re
 import sys
 from pathlib import Path
 
-# Wir wollen Cards-Schema validieren – PyCompendium-Root muss im Pfad sein.
+# Wir wollen Cards-Schema validieren – Skriptorium-Root muss im Pfad sein.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from schemas import Card, write_json
@@ -40,10 +40,10 @@ from schemas import Card, write_json
 
 # Quellordner kommt aus:
 #   1. --source CLI-Argument (hoechste Prioritaet)
-#   2. Umgebungsvariable PYCOMPENDIUM_SOURCE_DIR
+#   2. Umgebungsvariable SKRIPTORIUM_SOURCE_DIR
 #   3. ../knowledge_source (Fallback fuer Quick-Demo)
 #
-# Der Quellordner darf, soll und wird nicht im PyCompendium-Repo liegen.
+# Der Quellordner darf, soll und wird nicht im Skriptorium-Repo liegen.
 
 # Default-Mapping fuer Pfad-Substring -> (track, default_level, source_short).
 # Kann durch tools/source_map.json ueberschrieben werden (siehe load_source_map).
@@ -219,7 +219,7 @@ def resolve_source_dir(cli_source: str | None) -> Path:
     """Aufloest: CLI -> ENV -> Fallback."""
     if cli_source:
         return Path(cli_source).expanduser().resolve()
-    env_dir = os.getenv("PYCOMPENDIUM_SOURCE_DIR")
+    env_dir = os.getenv("SKRIPTORIUM_SOURCE_DIR")
     if env_dir:
         return Path(env_dir).expanduser().resolve()
     fallback = Path(__file__).resolve().parent.parent.parent / "knowledge_source"
@@ -233,7 +233,7 @@ def main() -> None:
     parser.add_argument(
         "--source", metavar="DIR",
         help="Quellordner mit *_extracted.md-Dateien. "
-             "Default: $PYCOMPENDIUM_SOURCE_DIR oder ../knowledge_source.",
+             "Default: $SKRIPTORIUM_SOURCE_DIR oder ../knowledge_source.",
     )
     args = parser.parse_args()
 
@@ -241,7 +241,7 @@ def main() -> None:
     if not knowledge_root.exists():
         print(
             f"FEHLER: Quellordner nicht gefunden: {knowledge_root}\n"
-            f"  Setze --source DIR oder Umgebungsvariable PYCOMPENDIUM_SOURCE_DIR.",
+            f"  Setze --source DIR oder Umgebungsvariable SKRIPTORIUM_SOURCE_DIR.",
             file=sys.stderr,
         )
         sys.exit(1)

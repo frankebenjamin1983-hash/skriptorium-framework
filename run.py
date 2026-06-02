@@ -217,7 +217,7 @@ def select_pipeline(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="PyCompendium – Agenten-Pipeline. Stufe 1: Dummy-Crew, kein API-Call.",
+        description="Skriptorium – Agenten-Pipeline. Stufe 1: Dummy-Crew, kein API-Call.",
     )
     parser.add_argument("--list", action="store_true",
                         help="Agentenliste zeigen und beenden.")

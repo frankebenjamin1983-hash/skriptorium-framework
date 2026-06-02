@@ -1,4 +1,4 @@
-# PyCompendium – Runtime-Dependencies
+# Skriptorium – Runtime-Dependencies
 #
 # Stufe 1 (aktuell):
 pydantic>=2.0

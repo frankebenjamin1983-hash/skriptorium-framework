@@ -1,4 +1,4 @@
-"""Agenten-Paket für PyCompendium. Eine Datei pro Rolle."""
+"""Agenten-Paket für Skriptorium. Eine Datei pro Rolle."""
 
 from .archivar import DummyArchivar
 from .autor import DummyAutor

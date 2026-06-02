@@ -122,7 +122,7 @@ class RealLektor(Agent):
         chapters = self._translate_to_chapters(response, relevant)
 
         outline = Outline(
-            book_title=response.get("book_title", "PyCompendium"),
+            book_title=response.get("book_title", "Skriptorium"),
             language="de",
             chapters=chapters,
         )

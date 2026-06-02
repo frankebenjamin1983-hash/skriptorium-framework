@@ -6,8 +6,8 @@ Stufe 2 importiert ausschliesslich diesen Reader – nicht chromadb direkt
 und auch nicht die _extracted.md-Dateien.
 
 Konfiguration:
-  - Pfad: Umgebungsvariable PYCOMPENDIUM_CHROMA_DIR oder Konstruktor-Argument
-  - Collection: Umgebungsvariable PYCOMPENDIUM_CHROMA_COLLECTION oder
+  - Pfad: Umgebungsvariable SKRIPTORIUM_CHROMA_DIR oder Konstruktor-Argument
+  - Collection: Umgebungsvariable SKRIPTORIUM_CHROMA_COLLECTION oder
     Konstruktor-Argument
 
 Vertrag:
@@ -35,7 +35,7 @@ from pydantic import BaseModel
 
 
 def _default_vectorstore_path() -> Path:
-    env = os.getenv("PYCOMPENDIUM_CHROMA_DIR")
+    env = os.getenv("SKRIPTORIUM_CHROMA_DIR")
     if env:
         return Path(env).expanduser().resolve()
     # Fallback: ../knowledge_source/vectorstore relativ zum Repo
@@ -44,7 +44,7 @@ def _default_vectorstore_path() -> Path:
 
 
 def _default_collection() -> str:
-    return os.getenv("PYCOMPENDIUM_CHROMA_COLLECTION", "knowledge")
+    return os.getenv("SKRIPTORIUM_CHROMA_COLLECTION", "knowledge")
 
 
 class Chunk(BaseModel):
@@ -68,7 +68,7 @@ class ChromaReader:
         if not self.store_path.exists():
             raise FileNotFoundError(
                 f"Chroma-Store nicht gefunden: {self.store_path}. "
-                "Setze PYCOMPENDIUM_CHROMA_DIR oder store_path im Konstruktor."
+                "Setze SKRIPTORIUM_CHROMA_DIR oder store_path im Konstruktor."
             )
 
         # Lazy import – chromadb ist eine Stufe-2-Dependency.
