@@ -59,6 +59,10 @@ class Chapter(BaseModel):
     title: str
     topic: str
     card_ids: list[str]
+    # Optional in Stufe 1, vom Echt-Lektor (Stufe 2) gefuellt.
+    part: str | None = None                       # "Teil I: Grundlagen"
+    topics: list[str] = []                        # Mehrere Topics moeglich (Echt-Lektor)
+    learning_objectives: list[str] = []           # 3-5 Lernziele pro Kapitel
 
 
 class Outline(BaseModel):
