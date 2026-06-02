@@ -37,10 +37,24 @@ from orchestrator import Orchestrator
 # Registry
 # ──────────────────────────────────────────────────────────────────────────
 
-def default_pipeline() -> list[Agent]:
-    """Stufe-1-Standard-Reihenfolge."""
+def default_pipeline(
+    real_archivar: bool = False,
+    sample: int | None = None,
+) -> list[Agent]:
+    """
+    Standard-Reihenfolge. Echte Agenten werden ueber Flags zugeschaltet,
+    Default ist die Stufe-1-Dummy-Crew.
+    """
+    if real_archivar:
+        # Lazy import: nur wenn auch wirklich verwendet (sonst kein
+        # SDK-Krempel in Stufe-1-Laeufen).
+        from agents.archivar_real import RealArchivar
+        archivar: Agent = RealArchivar(sample=sample)
+    else:
+        archivar = DummyArchivar()
+
     return [
-        DummyArchivar(),
+        archivar,
         DummyLektor(),
         DummyAutor(),
         DummyFaktenpruefer(),
@@ -172,6 +186,10 @@ def main() -> None:
                         help="Nur diesen Agenten ausfuehren (Name aus --list).")
     parser.add_argument("--from", dest="start_from", metavar="AGENT",
                         help="Ab diesem Agenten weitermachen (vorherige Artefakte muessen existieren).")
+    parser.add_argument("--real-archivar", action="store_true",
+                        help="Stufe-2-Archivar (Grok) statt Dummy verwenden. Kostet Tokens!")
+    parser.add_argument("--sample", type=int, metavar="N",
+                        help="Nur die ersten N Karten verarbeiten (Kostenkontrolle).")
     args = parser.parse_args()
 
     if args.only and args.start_from:
@@ -181,7 +199,7 @@ def main() -> None:
     artifacts_dir = root / "artifacts"
     runs_log = root / "runs.jsonl"
 
-    pipeline = default_pipeline()
+    pipeline = default_pipeline(real_archivar=args.real_archivar, sample=args.sample)
 
     if args.list:
         print("Pipeline-Reihenfolge:")
