@@ -40,7 +40,9 @@ from orchestrator import Orchestrator
 def default_pipeline(
     real_archivar: bool = False,
     real_lektor: bool = False,
+    real_autor: bool = False,
     sample: int | None = None,
+    chapter: str | None = None,
 ) -> list[Agent]:
     """
     Standard-Reihenfolge. Echte Agenten werden ueber Flags zugeschaltet,
@@ -58,10 +60,16 @@ def default_pipeline(
     else:
         lektor = DummyLektor()
 
+    if real_autor:
+        from agents.autor_real import RealAutor
+        autor: Agent = RealAutor(chapter_id=chapter)
+    else:
+        autor = DummyAutor()
+
     return [
         archivar,
         lektor,
-        DummyAutor(),
+        autor,
         DummyFaktenpruefer(),
         DummyLektorat(),
         DummyQuizMaster(),
@@ -195,6 +203,10 @@ def main() -> None:
                         help="Stufe-2-Archivar (Grok) statt Dummy verwenden. Kostet Tokens!")
     parser.add_argument("--real-lektor", action="store_true",
                         help="Stufe-2-Lektor (Claude Sonnet) statt Dummy verwenden.")
+    parser.add_argument("--real-autor", action="store_true",
+                        help="Stufe-2-Autor (Claude Sonnet) statt Dummy verwenden.")
+    parser.add_argument("--chapter", metavar="ID",
+                        help="Nur dieses Kapitel verarbeiten (z. B. '07'). Nur sinnvoll mit --real-autor.")
     parser.add_argument("--sample", type=int, metavar="N",
                         help="Nur die ersten N Karten verarbeiten (Kostenkontrolle).")
     args = parser.parse_args()
@@ -209,7 +221,9 @@ def main() -> None:
     pipeline = default_pipeline(
         real_archivar=args.real_archivar,
         real_lektor=args.real_lektor,
+        real_autor=args.real_autor,
         sample=args.sample,
+        chapter=args.chapter,
     )
 
     if args.list:
