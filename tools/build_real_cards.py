@@ -151,10 +151,24 @@ def role_for_track(track: str) -> str:
     return "primary"
 
 
+def _file_tag(file_path: Path) -> str:
+    """
+    Stem ohne "_extracted"-Suffix, nicht-alphanumerische Zeichen zu Underscore.
+    Dient als ID-Bestandteil, damit mehrere Dateien mit gleichem source_short
+    (z. B. Catchall-Mapping "cs50x\\" -> "cs50x") nicht ihre Card-IDs kollidieren
+    lassen.
+    """
+    stem = file_path.stem.replace("_extracted", "")
+    tag = "".join(c if c.isalnum() else "_" for c in stem).strip("_")
+    return tag or "file"
+
+
 def cards_from_file(file_path: Path) -> list[Card]:
     """Heuristik: H2 = topic, H3 = subtopic; Inhalt darunter = content_md."""
     track, default_level, source_short = classify_source(file_path)
     role = role_for_track(track)
+    file_tag = _file_tag(file_path)
+    id_prefix = f"{source_short}__{file_tag}"
     blocks = split_by_headings(file_path.read_text(encoding="utf-8", errors="ignore"))
 
     cards: list[Card] = []
@@ -168,7 +182,7 @@ def cards_from_file(file_path: Path) -> list[Card]:
         if current_topic and pending_topic_body and not seen_h3_under_topic:
             counter += 1
             cards.append(Card(
-                id=f"{source_short}__{counter:04d}",
+                id=f"{id_prefix}__{counter:04d}",
                 topic=current_topic,
                 subtopic=current_topic,  # kein H3 → Topic auch als Subtopic
                 level=default_level,
@@ -196,7 +210,7 @@ def cards_from_file(file_path: Path) -> list[Card]:
             if body or head:
                 counter += 1
                 cards.append(Card(
-                    id=f"{source_short}__{counter:04d}",
+                    id=f"{id_prefix}__{counter:04d}",
                     topic=current_topic or head,
                     subtopic=head,
                     level=default_level,

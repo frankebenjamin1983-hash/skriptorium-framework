@@ -90,3 +90,32 @@ def test_role_primary_for_core(patched_source_map, tmp_path: Path):
     assert cards
     assert all(c.role == "primary" for c in cards)
     assert all(c.track == "core" for c in cards)
+
+
+def test_ids_unique_across_files_sharing_source_short(
+    patched_source_map, tmp_path: Path,
+):
+    """
+    Regressionstest: zwei Dateien, die auf denselben source_short mappen
+    (typisch bei einem Catchall-Eintrag), duerfen sich KEINE IDs teilen.
+    """
+    md = "# L\n\n## Topic\n\n### Sub\nbody.\n"
+    f1 = tmp_path / "supp_dir" / "lektion_03_alpha_extracted.md"
+    f2 = tmp_path / "supp_dir" / "lektion_04_beta_extracted.md"
+    f1.parent.mkdir(parents=True)
+    f1.write_text(md, encoding="utf-8")
+    f2.write_text(md, encoding="utf-8")
+
+    cards1 = cards_from_file(f1)
+    cards2 = cards_from_file(f2)
+    ids1 = {c.id for c in cards1}
+    ids2 = {c.id for c in cards2}
+
+    assert cards1 and cards2
+    assert ids1.isdisjoint(ids2), (
+        f"ID-Kollision zwischen Dateien mit gleichem source_short: "
+        f"gemeinsam={ids1 & ids2}"
+    )
+    # Praktisch: jede ID enthaelt den Datei-Stem
+    assert all("lektion_03_alpha" in cid for cid in ids1)
+    assert all("lektion_04_beta" in cid for cid in ids2)
