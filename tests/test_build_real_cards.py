@@ -49,7 +49,7 @@ def test_cards_from_h2_h3(tmp_path: Path):
     assert "Topic B" in topics
 
 
-def test_classify_source_falls_back():
+def test_classify_source_falls_back(patched_source_map):
     track, level, src = classify_source(Path("C:/foo/bar/baz_extracted.md"))
     assert track == "unknown"
     assert level == "beginner"
