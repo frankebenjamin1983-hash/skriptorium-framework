@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Lint (ruff — informativ, blockiert nicht)
+        continue-on-error: true
+        run: uvx ruff check .
+
+      - name: Tests (pytest, deterministisch, kein Netz)
+        run: >
+          uv run --no-project --python 3.12
+          --with-requirements requirements.txt --with pytest
+          python -m pytest -q
